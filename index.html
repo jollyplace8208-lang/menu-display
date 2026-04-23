@@ -105,12 +105,24 @@ fetch(URL)
   .then(res => res.text())
   .then(rep => {
     const json = JSON.parse(rep.substring(47).slice(0, -2));
-    const rows = json.table.rows.map(r => ({
-      date: r.c[0]?.v,
-      breakfast: r.c[1]?.v || "",
-      lunch: r.c[2]?.v || "",
-      dinner: r.c[3]?.v || ""
-    }));
+    const rows = json.table.rows.map(r => {
+  let sheetDate = "";
+
+  // 將 Google Sheets 日期數字轉成 yyyy-mm-dd
+  if (typeof r.c[0]?.v === "number") {
+    const d = new Date(Math.round((r.c[0].v - 25569) * 86400 * 1000));
+    d.setHours(0,0,0,0);
+    sheetDate = d.toISOString().slice(0,10);
+  }
+
+  return {
+    date: sheetDate,
+    breakfast: r.c[1]?.v || "",
+    lunch: r.c[2]?.v || "",
+    dinner: r.c[3]?.v || ""
+  };
+});
+
 
     const today = new Date();
     today.setHours(0,0,0,0);
