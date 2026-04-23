@@ -101,28 +101,22 @@ const SHEET_ID = "1KntGG-C-nGwc2pkUUDBQcVm8tr7sADiwkWffXPCtyOg";
 const SHEET_NAME = "Display_Menu";
 const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${SHEET_NAME}`;
 
+function formatDate(date) {
+  return date.toISOString().slice(0,10);
+}
+
 fetch(URL)
   .then(res => res.text())
   .then(rep => {
     const json = JSON.parse(rep.substring(47).slice(0, -2));
-    const rows = json.table.rows.map(r => {
-  let sheetDate = "";
 
-  // 將 Google Sheets 日期數字轉成 yyyy-mm-dd
-  if (typeof r.c[0]?.v === "number") {
-    const d = new Date(Math.round((r.c[0].v - 25569) * 86400 * 1000));
-    d.setHours(0,0,0,0);
-    sheetDate = d.toISOString().slice(0,10);
-  }
-
-  return {
-    date: sheetDate,
-    breakfast: r.c[1]?.v || "",
-    lunch: r.c[2]?.v || "",
-    dinner: r.c[3]?.v || ""
-  };
-});
-
+    // ✅ 將 Sheet 直接轉成乾淨文字資料
+    const rows = json.table.rows.map(r => ({
+      date: String(r.c[0]?.f || "").trim(), // 👈 用 f（顯示文字）
+      breakfast: r.c[1]?.v || "",
+      lunch: r.c[2]?.v || "",
+      dinner: r.c[3]?.v || ""
+    }));
 
     const today = new Date();
     today.setHours(0,0,0,0);
@@ -130,14 +124,21 @@ fetch(URL)
     [0,1,2].forEach((offset, i) => {
       const d = new Date(today);
       d.setDate(today.getDate() + offset);
-      const key = d.toISOString().slice(0,10);
 
-      const found = rows.find(r => r.date === key);
+      const dateKey = formatDate(d); // yyyy-mm-dd
+
+      const found = rows.find(r => r.date === dateKey);
       if (!found) return;
 
       const prefix = i === 0 ? "today" : i === 1 ? "tomorrow" : "after";
+
       document.getElementById(`${prefix}-date`).innerText =
-        d.toLocaleDateString("zh-HK", { year: "numeric", month: "long", day: "numeric", weekday: "long" });
+        d.toLocaleDateString("zh-HK", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          weekday: "long"
+        });
 
       document.getElementById(`${prefix}-breakfast`).innerText = found.breakfast;
       document.getElementById(`${prefix}-lunch`).innerText = found.lunch;
@@ -145,14 +146,15 @@ fetch(URL)
     });
   });
 
-// 輪播
+// ✅ 輪播
 let pages = document.querySelectorAll(".page");
 let index = 0;
 setInterval(() => {
   pages.forEach(p => p.classList.remove("active"));
   index = (index + 1) % pages.length;
   pages[index].classList.add("active");
-}, 10000); // 每 10 秒
+}, 10000);
 </script>
+``
 </body>
 </html>
