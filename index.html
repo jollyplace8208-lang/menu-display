@@ -55,3 +55,116 @@ body {
   bottom: 18px;
   right: 28px;
   font-size: 18px;
+  color: #666;
+}
+</style>
+</head>
+
+<body>
+
+<div id="pages"></div>
+<div class="footer">以上餐單如有更改，恕不另行通知</div>
+
+<script>
+/* ===== Google Sheet 設定 ===== */
+const SHEET_ID = "1Qg-VjH32AckzP3LFbYQFnCwZqq6YN0Es2qXIDlRYyAY";
+const SHEET_NAME = "Display_Menu";
+const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${SHEET_NAME}`;
+
+/* ===== 時間判斷 ===== */
+const now = new Date();
+const minsNow = now.getHours() * 60 + now.getMinutes();
+
+function inRange(start, end) {
+  return minsNow >= start && minsNow <= end;
+}
+
+/* ===== Highlight 時段設定 ===== */
+const highlight = {
+  breakfast: inRange(8*60, 8*60+30),          // 08:00–08:30
+  lunch:     inRange(11*60, 12*60),            // 11:00–12:00
+  tea:       inRange(14*60+45, 15*60+15),      // 14:45–15:15
+  dinner:    inRange(17*60, 18*60)             // 17:00–18:00
+};
+
+fetch(URL)
+  .then(res => res.text())
+  .then(text => {
+    const json = JSON.parse(text.substring(47, text.length - 2));
+    const rows = json.table.rows;
+
+    const container = document.getElementById("pages");
+    let pageCount = 0;
+
+    // 今日 / 明日 / 後日
+    for (let i = 0; i < 3; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() + i);
+      const key = d.toLocaleDateString("sv-SE"); // yyyy-mm-dd
+
+      const row = rows.find(r => r.c[0]?.f === key);
+      if (!row) continue; // ✅ 沒資料則不顯示頁面
+
+      pageCount++;
+
+      const page = document.createElement("div");
+      page.className = "page" + (pageCount === 1 ? " active" : "");
+
+      page.innerHTML = `
+        <div class="date">
+          ${d.toLocaleDateString("zh-HK", {
+            year:"numeric",
+            month:"long",
+            day:"numeric",
+            weekday:"long"
+          })}
+        </div>
+
+        <div class="meal ${highlight.breakfast ? "highlight" : ""}">
+          <div class="meal-title">🥣 早餐</div>
+          <div class="meal-content">${row.c[1]?.v || ""}</div>
+        </div>
+
+        <div class="meal ${highlight.lunch ? "highlight" : ""}">
+          <div class="meal-title">🍚 午餐</div>
+          <div class="meal-content">${row.c[2]?.v || ""}</div>
+        </div>
+
+        <div class="meal ${highlight.tea ? "highlight" : ""}">
+          <div class="meal-title">🍪 下午茶</div>
+          <div class="meal-content">${row.c[3]?.v || ""}</div>
+        </div>
+
+        <div class="meal ${highlight.dinner ? "highlight" : ""}">
+          <div class="meal-title">🍲 晚餐</div>
+          <div class="meal-content">${row.c[4]?.v || ""}</div>
+        </div>
+
+        <!-- 🟢 晚餐時間，湯同步 highlight -->
+        <div class="meal ${highlight.dinner ? "highlight" : ""}">
+          <div class="meal-title">🍵 湯</div>
+          <div class="meal-content">${row.c[5]?.v || ""}</div>
+        </div>
+      `;
+
+      container.appendChild(page);
+    }
+
+    /* ===== 輪播（多於一頁才播） ===== */
+    if (pageCount > 1) {
+      const pages = document.querySelectorAll(".page");
+      let index = 0;
+      setInterval(() => {
+        pages[index].classList.remove("active");
+        index = (index + 1) % pages.length;
+        pages[index].classList.add("active");
+      }, 10000); // 10 秒
+    }
+  })
+  .catch(err => {
+    console.error(err);
+  });
+</script>
+
+</body>
+</html>
