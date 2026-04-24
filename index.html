@@ -1,160 +1,140 @@
 <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
-  <meta charset="UTF-8" />
-  <title>每日餐單</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
-      background: #f5f0e6;
-      background-image: linear-gradient(135deg, #f0e6d2 25%, #f7f2e8 25%, #f7f2e8 50%, #f0e6d2 50%, #f0e6d2 75%, #f7f2e8 75%, #f7f2e8 100%);
-      background-size: 40px 40px;
-    }
+<meta charset="UTF-8">
+<title>每日餐單</title>
 
-    .page {
-      width: 100vw;
-      height: 100vh;
-      display: none;
-      padding: 60px;
-      box-sizing: border-box;
-    }
+<style>
+body {
+  margin: 0;
+  padding: 40px;
+  font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+  background: #f6f4ef;
+  color: #222;
+}
 
-    .page.active {
-      display: block;
-    }
+.container {
+  max-width: 100%;
+}
 
-    .card {
-      background: #ffffffdd;
-      border-radius: 24px;
-      padding: 50px;
-      height: 100%;
-      box-shadow: 0 10px 30px rgba(0,0,0,.15);
-    }
+.date {
+  font-size: 42px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
 
-    h1 {
-      font-size: 56px;
-      margin: 0 0 20px 0;
-    }
+.meal {
+  margin-bottom: 22px;
+}
 
-    .date {
-      font-size: 32px;
-      margin-bottom: 40px;
-    }
+.meal-title {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
 
-    .meal {
-      font-size: 40px;
-      margin: 30px 0;
-    }
+.meal-content {
+  font-size: 30px;
+  white-space: pre-line; /* ✅ 保留換行 */
+  padding-left: 12px;
+}
 
-    .footer {
-      position: absolute;
-      bottom: 40px;
-      right: 60px;
-      font-size: 22px;
-      color: #555;
-    }
+/* 顏色可自行調 */
+.breakfast { color: #2e7d32; }
+.lunch { color: #ef6c00; }
+.tea { color: #6a1b9a; }
+.dinner { color: #1565c0; }
+.soup { color: #455a64; }
 
-    /* 顏色主題 */
-    .today h1 { color: #2e7d32; }     /* green */
-    .tomorrow h1 { color: #f9a825; }  /* yellow/orange */
-    .after h1 { color: #d81b60; }     /* pink */
-  </style>
+.footer {
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  font-size: 20px;
+  color: #555;
+}
+</style>
 </head>
+
 <body>
+<div class="container">
 
-  <div id="today" class="page today active">
-    <div class="card">
-      <h1>🍽 今日餐單</h1>
-      <div class="date" id="today-date"></div>
-      <div class="meal">🥣 早餐：<span id="today-breakfast"></span></div>
-      <div class="meal">🍚 午餐：<span id="today-lunch"></span></div>
-      <div class="meal">🍲 晚餐：<span id="today-dinner"></span></div>
-      <div class="footer">以上餐單如有更改，恕不另行通知。</div>
-    </div>
+  <div class="date" id="menuDate">載入中...</div>
+
+  <div class="meal breakfast">
+    <div class="meal-title">🥣 早餐</div>
+    <div class="meal-content" id="breakfast"></div>
   </div>
 
-  <div id="tomorrow" class="page tomorrow">
-    <div class="card">
-      <h1>🍽 明日餐單</h1>
-      <div class="date" id="tomorrow-date"></div>
-      <div class="meal">🥣 早餐：<span id="tomorrow-breakfast"></span></div>
-      <div class="meal">🍚 午餐：<span id="tomorrow-lunch"></span></div>
-      <div class="meal">🍲 晚餐：<span id="tomorrow-dinner"></span></div>
-      <div class="footer">以上餐單如有更改，恕不另行通知。</div>
-    </div>
+  <div class="meal lunch">
+    <div class="meal-title">🍚 午餐</div>
+    <div class="meal-content" id="lunch"></div>
   </div>
 
-  <div id="after" class="page after">
-    <div class="card">
-      <h1>🍽 後日餐單</h1>
-      <div class="date" id="after-date"></div>
-      <div class="meal">🥣 早餐：<span id="after-breakfast"></span></div>
-      <div class="meal">🍚 午餐：<span id="after-lunch"></span></div>
-      <div class="meal">🍲 晚餐：<span id="after-dinner"></span></div>
-      <div class="footer">以上餐單如有更改，恕不另行通知。</div>
-    </div>
+  <div class="meal tea">
+    <div class="meal-title">🍪 下午茶</div>
+    <div class="meal-content" id="tea"></div>
   </div>
+
+  <div class="meal dinner">
+    <div class="meal-title">🍲 晚餐</div>
+    <div class="meal-content" id="dinner"></div>
+  </div>
+
+  <div class="meal soup">
+    <div class="meal-title">🍵 湯</div>
+    <div class="meal-content" id="soup"></div>
+  </div>
+
+</div>
+
+<div class="footer">
+以上餐單如有更改，恕不另行通知
+</div>
 
 <script>
-const SHEET_ID = "1KntGG-C-nGwc2pkUUDBQcVm8tr7sADiwkWffXPCtyOg";
+// 🔴🔴🔴 只需改呢度 🔴🔴🔴
+const SHEET_ID = "YOUR_SHEET_ID";
 const SHEET_NAME = "Display_Menu";
-const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${SHEET_NAME}`;
 
-function formatDate(date) {
-  return date.toISOString().slice(0,10);
-}
+const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${SHEET_NAME}`;
 
 fetch(URL)
   .then(res => res.text())
-  .then(rep => {
-    const json = JSON.parse(rep.substring(47).slice(0, -2));
-
-    // ✅ 將 Sheet 直接轉成乾淨文字資料
-    const rows = json.table.rows.map(r => ({
-      date: String(r.c[0]?.f || "").trim(), // 👈 用 f（顯示文字）
-      breakfast: r.c[1]?.v || "",
-      lunch: r.c[2]?.v || "",
-      dinner: r.c[3]?.v || ""
-    }));
+  .then(text => {
+    const json = JSON.parse(text.substring(47, text.length - 2));
+    const rows = json.table.rows;
 
     const today = new Date();
     today.setHours(0,0,0,0);
+    const todayStr = today.toISOString().slice(0,10);
 
-    [0,1,2].forEach((offset, i) => {
-      const d = new Date(today);
-      d.setDate(today.getDate() + offset);
+    rows.forEach(row => {
+      const date = row.c[0]?.v;
+      if (!date) return;
 
-      const dateKey = formatDate(d); // yyyy-mm-dd
-
-      const found = rows.find(r => r.date === dateKey);
-      if (!found) return;
-
-      const prefix = i === 0 ? "today" : i === 1 ? "tomorrow" : "after";
-
-      document.getElementById(`${prefix}-date`).innerText =
-        d.toLocaleDateString("zh-HK", {
+      if (date === todayStr) {
+        const dateText = today.toLocaleDateString("zh-HK", {
           year: "numeric",
           month: "long",
           day: "numeric",
           weekday: "long"
         });
 
-      document.getElementById(`${prefix}-breakfast`).innerText = found.breakfast;
-      document.getElementById(`${prefix}-lunch`).innerText = found.lunch;
-      document.getElementById(`${prefix}-dinner`).innerText = found.dinner;
+        document.getElementById("menuDate").innerText = dateText;
+        document.getElementById("breakfast").innerText = row.c[1]?.v || "";
+        document.getElementById("lunch").innerText = row.c[2]?.v || "";
+        document.getElementById("tea").innerText = row.c[3]?.v || "";
+        document.getElementById("dinner").innerText = row.c[4]?.v || "";
+        document.getElementById("soup").innerText = row.c[5]?.v || "";
+      }
     });
+  })
+  .catch(err => {
+    document.getElementById("menuDate").innerText = "無法載入餐單";
+    console.error(err);
   });
-
-// ✅ 輪播
-let pages = document.querySelectorAll(".page");
-let index = 0;
-setInterval(() => {
-  pages.forEach(p => p.classList.remove("active"));
-  index = (index + 1) % pages.length;
-  pages[index].classList.add("active");
-}, 10000);
 </script>
-``
+
 </body>
 </html>
