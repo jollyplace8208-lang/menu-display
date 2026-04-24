@@ -5,23 +5,25 @@
 <title>每日餐單</title>
 
 <style>
-/* ===== 全局 ===== */
+/* ===== 全局背景（木色） ===== */
 body{
   margin:0;
-  background:#f3efe6;
+  background:#f4efe6; /* 淺木色 */
   font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif;
   color:#2b2b2b;
 }
+
 .page{display:none;padding:44px;}
 .page.active{display:block}
 
-/* ===== 標題 ===== */
+/* ===== Header（院舍綠） ===== */
 .header{
-  background:#7a9b6d;
-  color:#fff;
+  background:#6f8f73; /* 綠色 */
+  color:#ffffff;
   padding:22px 30px;
-  border-radius:14px;
+  border-radius:16px;
   margin-bottom:28px;
+  box-shadow:0 6px 16px rgba(0,0,0,.12);
 }
 .header h1{
   margin:0;
@@ -30,18 +32,20 @@ body{
 }
 .header .date{
   font-size:26px;
+  margin-top:6px;
   opacity:.95;
 }
 
-/* ===== 餐卡 ===== */
+/* ===== 餐卡（白＋粉感） ===== */
 .meal{
   background:#ffffff;
-  border-radius:14px;
+  border-radius:16px;
   padding:20px 24px;
   margin-bottom:18px;
-  box-shadow:0 4px 10px rgba(0,0,0,.06);
-  border-left:10px solid transparent;
+  box-shadow:0 6px 14px rgba(214,180,160,.25); /* 粉感陰影 */
+  border-left:12px solid #f2d8c2; /* 淡粉邊 */
 }
+
 .meal-title{
   font-size:30px;
   font-weight:700;
@@ -49,15 +53,15 @@ body{
 }
 .meal-content{
   font-size:28px;
-  line-height:1.5;
+  line-height:1.6;
   white-space:pre-line;
-  padding-left:8px;
+  padding-left:6px;
 }
 
-/* ===== Highlight（依時間） ===== */
+/* ===== Highlight（橙） ===== */
 .highlight{
-  background:#fff7dc;
-  border-left-color:#f4b400;
+  background:#fff1dc;
+  border-left-color:#f4a259; /* 橙色 */
 }
 
 /* ===== Footer ===== */
@@ -82,13 +86,13 @@ const SHEET_ID   = "1Qg-VjH32AckzP3LFbYQFnCwZqq6YN0Es2qXIDlRYyAY";
 const SHEET_NAME = "Display_Menu";
 const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${SHEET_NAME}`;
 
-/* ===== 時段 Highlight（你指定嘅時間） ===== */
-const now = new Date();
-const mins = now.getHours()*60 + now.getMinutes();
-const inR=(a,b)=>mins>=a && mins<=b;
+/* ===== 時段 Highlight（照你指定） ===== */
+const now=new Date();
+const mins=now.getHours()*60+now.getMinutes();
+const inR=(a,b)=>mins>=a&&mins<=b;
 
 const HL={
-  breakfast: inR(8*60, 8*60+30),
+  breakfast: inR(8*60,8*60+30),
   lunch:     inR(11*60,12*60),
   tea:       inR(14*60+45,15*60+15),
   dinner:    inR(17*60,18*60)
@@ -100,6 +104,7 @@ fetch(URL).then(r=>r.text()).then(t=>{
   const wrap=document.getElementById("pages");
   wrap.innerHTML="";
   const show=rows.slice(0,3);
+
   if(show.length===0){
     wrap.innerHTML="<div style='font-size:32px'>未有餐單資料</div>";
     return;
@@ -109,6 +114,7 @@ fetch(URL).then(r=>r.text()).then(t=>{
     const d=new Date(); d.setDate(d.getDate()+i);
     const page=document.createElement("div");
     page.className="page"+(i===0?" active":"");
+
     page.innerHTML=`
       <div class="header">
         <h1>🍽 每日餐單</h1>
