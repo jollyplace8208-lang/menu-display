@@ -16,7 +16,6 @@ body {
   display: none;
   padding: 50px;
 }
-
 .page.active {
   display: block;
 }
@@ -29,6 +28,8 @@ body {
 
 .meal {
   margin-bottom: 18px;
+  padding: 10px;
+  border-radius: 8px;
 }
 
 .meal-title {
@@ -43,72 +44,10 @@ body {
   padding-left: 10px;
 }
 
-.footer {
-  position: fixed;
-  bottom: 18px;
-  right: 28px;
-  font-size: 18px;
-  color: #666;
-}
-</style>
-</head>
-
-<body>
-
-<!-- 今日 -->
-<div class="page active">
-  <div class="date" id="date0"></div>
-
-  <div class="meal"><div class="meal-title">🥣 早餐</div><div class="meal-content" id="b0"></div></div>
-  <div class="meal"><div class="meal-title">🍚 午餐</div><div class="meal-content" id="l0"></div></div>
-  <div class="meal"><div class="meal-title">🍪 下午茶</div><div class="meal-content" id="t0"></div></div>
-  <div class="meal"><div class="meal-title">🍲 晚餐</div><div class="meal-content" id="d0"></div></div>
-  <div class="meal"><div class="meal-title">🍵 湯</div><div class="meal-content" id="s0"></div></div>
-</div>
-
-<!DOCTYPE html>
-<html lang="zh-HK">
-<head>
-<meta charset="UTF-8">
-<title>每日餐單</title>
-
-<style>
-body {
-  margin: 0;
-  background: #f6f4ef;
-  font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif;
-  color: #222;
-}
-
-.page {
-  display: none;
-  padding: 50px;
-}
-
-.page.active {
-  display: block;
-}
-
-.date {
-  font-size: 44px;
-  font-weight: bold;
-  margin-bottom: 25px;
-}
-
-.meal {
-  margin-bottom: 18px;
-}
-
-.meal-title {
-  font-size: 30px;
-  font-weight: bold;
-  margin-bottom: 4px;
-}
-
-.meal-content {
-  font-size: 28px;
-  white-space: pre-line;
-  padding-left: 10px;
+/* Highlight 樣式 */
+.highlight {
+  background: #fff3cd;
+  border-left: 10px solid #ff9800;
 }
 
 .footer {
@@ -116,21 +55,3 @@ body {
   bottom: 18px;
   right: 28px;
   font-size: 18px;
-  color: #666;
-}
-</style>
-</head>
-
-<body>
-
-<!-- 今日 -->
-<div class="page active">
-  <div class="date" id="date0"></div>
-
-  <div class="meal"><div class="meal-title">🥣 早餐</div><div class="meal-content" id="b0"></div></div>
-  <div class="meal"><div class="meal-title">🍚 午餐</div><div class="meal-content" id="l0"></div></div>
-  <div class="meal"><div class="meal-title">🍪 下午茶</div><div class="meal-content" id="t0"></div></div>
-  <div class="meal"><div class="meal-title">🍲 晚餐</div><div class="meal-content" id="d0"></div></div>
-  <div class="meal"><div class="meal-title">🍵 湯</div><div class="meal-content" id="s0"></div></div>
-</div>
-
