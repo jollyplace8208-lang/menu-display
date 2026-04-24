@@ -1,160 +1,48 @@
-<!DOCTYPE html>
-<html lang="zh-HK">
-<head>
-  <meta charset="UTF-8" />
-  <title>每日餐單</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
-      background: #f5f0e6;
-      background-image: linear-gradient(135deg, #f0e6d2 25%, #f7f2e8 25%, #f7f2e8 50%, #f0e6d2 50%, #f0e6d2 75%, #f7f2e8 75%, #f7f2e8 100%);
-      background-size: 40px 40px;
+function generateDisplayMenu() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let display = ss.getSheetByName("Display_Menu");
+  if (!display) display = ss.insertSheet("Display_Menu");
+  display.clear();
+
+  // Header
+  display.appendRow([
+    "日期","早餐","午餐","下午茶","晚餐","湯","戒口"
+  ]);
+
+  ss.getSheets().forEach(sheet => {
+    if (!sheet.getName().toLowerCase().includes("week")) return;
+
+    const data = sheet.getDataRange().getValues();
+
+    // helper：按 column 取餐
+    const get = (label, col) => {
+      const row = data.find(r => String(r[0]).trim() === label);
+      return row ? row[col] : "";
+    };
+
+    // 全表掃描日期
+    for (let r = 0; r < data.length; r++) {
+      for (let c = 0; c < data[r].length; c++) {
+        const cell = data[r][c];
+
+        // Excel 日期序號
+        if (typeof cell === "number" && cell >= 40000 && cell <= 50000) {
+          const date = new Date(Math.round((cell - 25569) * 86400 * 1000));
+          const dateStr = Utilities.formatDate(
+            date, "Asia/Hong_Kong", "yyyy-MM-dd"
+          );
+
+          display.appendRow([
+            dateStr,
+            get("早餐", c),
+            get("午餐", c),
+            get("下午茶", c),
+            get("晚餐", c),
+            get("湯", c),
+            get("戒口", c)
+          ]);
+        }
+      }
     }
-
-    .page {
-      width: 100vw;
-      height: 100vh;
-      display: none;
-      padding: 60px;
-      box-sizing: border-box;
-    }
-
-    .page.active {
-      display: block;
-    }
-
-    .card {
-      background: #ffffffdd;
-      border-radius: 24px;
-      padding: 50px;
-      height: 100%;
-      box-shadow: 0 10px 30px rgba(0,0,0,.15);
-    }
-
-    h1 {
-      font-size: 56px;
-      margin: 0 0 20px 0;
-    }
-
-    .date {
-      font-size: 32px;
-      margin-bottom: 40px;
-    }
-
-    .meal {
-      font-size: 40px;
-      margin: 30px 0;
-    }
-
-    .footer {
-      position: absolute;
-      bottom: 40px;
-      right: 60px;
-      font-size: 22px;
-      color: #555;
-    }
-
-    /* 顏色主題 */
-    .today h1 { color: #2e7d32; }     /* green */
-    .tomorrow h1 { color: #f9a825; }  /* yellow/orange */
-    .after h1 { color: #d81b60; }     /* pink */
-  </style>
-</head>
-<body>
-
-  <div id="today" class="page today active">
-    <div class="card">
-      <h1>🍽 今日餐單</h1>
-      <div class="date" id="today-date"></div>
-      <div class="meal">🥣 早餐：<span id="today-breakfast"></span></div>
-      <div class="meal">🍚 午餐：<span id="today-lunch"></span></div>
-      <div class="meal">🍲 晚餐：<span id="today-dinner"></span></div>
-      <div class="footer">以上餐單如有更改，恕不另行通知。</div>
-    </div>
-  </div>
-
-  <div id="tomorrow" class="page tomorrow">
-    <div class="card">
-      <h1>🍽 明日餐單</h1>
-      <div class="date" id="tomorrow-date"></div>
-      <div class="meal">🥣 早餐：<span id="tomorrow-breakfast"></span></div>
-      <div class="meal">🍚 午餐：<span id="tomorrow-lunch"></span></div>
-      <div class="meal">🍲 晚餐：<span id="tomorrow-dinner"></span></div>
-      <div class="footer">以上餐單如有更改，恕不另行通知。</div>
-    </div>
-  </div>
-
-  <div id="after" class="page after">
-    <div class="card">
-      <h1>🍽 後日餐單</h1>
-      <div class="date" id="after-date"></div>
-      <div class="meal">🥣 早餐：<span id="after-breakfast"></span></div>
-      <div class="meal">🍚 午餐：<span id="after-lunch"></span></div>
-      <div class="meal">🍲 晚餐：<span id="after-dinner"></span></div>
-      <div class="footer">以上餐單如有更改，恕不另行通知。</div>
-    </div>
-  </div>
-
-<script>
-const SHEET_ID = "1KntGG-C-nGwc2pkUUDBQcVm8tr7sADiwkWffXPCtyOg";
-const SHEET_NAME = "Display_Menu";
-const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${SHEET_NAME}`;
-
-function formatDate(date) {
-  return date.toISOString().slice(0,10);
-}
-
-fetch(URL)
-  .then(res => res.text())
-  .then(rep => {
-    const json = JSON.parse(rep.substring(47).slice(0, -2));
-
-    // ✅ 將 Sheet 直接轉成乾淨文字資料
-    const rows = json.table.rows.map(r => ({
-      date: String(r.c[0]?.f || "").trim(), // 👈 用 f（顯示文字）
-      breakfast: r.c[1]?.v || "",
-      lunch: r.c[2]?.v || "",
-      dinner: r.c[3]?.v || ""
-    }));
-
-    const today = new Date();
-    today.setHours(0,0,0,0);
-
-    [0,1,2].forEach((offset, i) => {
-      const d = new Date(today);
-      d.setDate(today.getDate() + offset);
-
-      const dateKey = formatDate(d); // yyyy-mm-dd
-
-      const found = rows.find(r => r.date === dateKey);
-      if (!found) return;
-
-      const prefix = i === 0 ? "today" : i === 1 ? "tomorrow" : "after";
-
-      document.getElementById(`${prefix}-date`).innerText =
-        d.toLocaleDateString("zh-HK", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-          weekday: "long"
-        });
-
-      document.getElementById(`${prefix}-breakfast`).innerText = found.breakfast;
-      document.getElementById(`${prefix}-lunch`).innerText = found.lunch;
-      document.getElementById(`${prefix}-dinner`).innerText = found.dinner;
-    });
   });
-
-// ✅ 輪播
-let pages = document.querySelectorAll(".page");
-let index = 0;
-setInterval(() => {
-  pages.forEach(p => p.classList.remove("active"));
-  index = (index + 1) % pages.length;
-  pages[index].classList.add("active");
-}, 10000);
-</script>
-``
-</body>
-</html>
+}
