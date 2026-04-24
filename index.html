@@ -7,120 +7,130 @@
 <style>
 body {
   margin: 0;
-  padding: 40px;
-  font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif;
   background: #f6f4ef;
+  font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif;
   color: #222;
 }
+
+.page {
+  display: none;
+  padding: 50px;
+}
+
+.page.active {
+  display: block;
+}
+
 .date {
-  font-size: 42px;
+  font-size: 44px;
   font-weight: bold;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
+
 .meal {
-  margin-bottom: 22px;
+  margin-bottom: 18px;
 }
+
 .meal-title {
-  font-size: 32px;
-  font-weight: bold;
-  margin-bottom: 6px;
-}
-.meal-content {
   font-size: 30px;
-  white-space: pre-line;
-  padding-left: 12px;
+  font-weight: bold;
+  margin-bottom: 4px;
 }
+
+.meal-content {
+  font-size: 28px;
+  white-space: pre-line;
+  padding-left: 10px;
+}
+
 .footer {
   position: fixed;
-  bottom: 20px;
-  right: 30px;
-  font-size: 20px;
-  color: #555;
+  bottom: 18px;
+  right: 28px;
+  font-size: 18px;
+  color: #666;
 }
 </style>
 </head>
 
 <body>
 
-<div class="date" id="menuDate">載入中...</div>
+<!-- 今日 -->
+<div class="page active">
+  <div class="date" id="date0"></div>
 
-<div class="meal">
-  <div class="meal-title">🥣 早餐</div>
-  <div class="meal-content" id="breakfast"></div>
+  <div class="meal"><div class="meal-title">🥣 早餐</div><div class="meal-content" id="b0"></div></div>
+  <div class="meal"><div class="meal-title">🍚 午餐</div><div class="meal-content" id="l0"></div></div>
+  <div class="meal"><div class="meal-title">🍪 下午茶</div><div class="meal-content" id="t0"></div></div>
+  <div class="meal"><div class="meal-title">🍲 晚餐</div><div class="meal-content" id="d0"></div></div>
+  <div class="meal"><div class="meal-title">🍵 湯</div><div class="meal-content" id="s0"></div></div>
 </div>
 
-<div class="meal">
-  <div class="meal-title">🍚 午餐</div>
-  <div class="meal-content" id="lunch"></div>
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<title>每日餐單</title>
+
+<style>
+body {
+  margin: 0;
+  background: #f6f4ef;
+  font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+  color: #222;
+}
+
+.page {
+  display: none;
+  padding: 50px;
+}
+
+.page.active {
+  display: block;
+}
+
+.date {
+  font-size: 44px;
+  font-weight: bold;
+  margin-bottom: 25px;
+}
+
+.meal {
+  margin-bottom: 18px;
+}
+
+.meal-title {
+  font-size: 30px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.meal-content {
+  font-size: 28px;
+  white-space: pre-line;
+  padding-left: 10px;
+}
+
+.footer {
+  position: fixed;
+  bottom: 18px;
+  right: 28px;
+  font-size: 18px;
+  color: #666;
+}
+</style>
+</head>
+
+<body>
+
+<!-- 今日 -->
+<div class="page active">
+  <div class="date" id="date0"></div>
+
+  <div class="meal"><div class="meal-title">🥣 早餐</div><div class="meal-content" id="b0"></div></div>
+  <div class="meal"><div class="meal-title">🍚 午餐</div><div class="meal-content" id="l0"></div></div>
+  <div class="meal"><div class="meal-title">🍪 下午茶</div><div class="meal-content" id="t0"></div></div>
+  <div class="meal"><div class="meal-title">🍲 晚餐</div><div class="meal-content" id="d0"></div></div>
+  <div class="meal"><div class="meal-title">🍵 湯</div><div class="meal-content" id="s0"></div></div>
 </div>
 
-<div class="meal">
-  <div class="meal-title">🍪 下午茶</div>
-  <div class="meal-content" id="tea"></div>
-</div>
-
-<div class="meal">
-  <div class="meal-title">🍲 晚餐</div>
-  <div class="meal-content" id="dinner"></div>
-</div>
-
-<div class="meal">
-  <div class="meal-title">🍵 湯</div>
-  <div class="meal-content" id="soup"></div>
-</div>
-
-<div class="footer">以上餐單如有更改，恕不另行通知</div>
-
-<script>
-const SHEET_ID = "1Qg-VjH32AckzP3LFbYQFnCwZqq6YN0Es2qXIDlRYyAY";
-const SHEET_NAME = "Display_Menu";
-const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${SHEET_NAME}`;
-
-fetch(URL)
-  .then(res => res.text())
-  .then(text => {
-    const json = JSON.parse(text.substring(47, text.length - 2));
-    const rows = json.table.rows;
-
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    const todayStr = today.toLocaleDateString("sv-SE"); // yyyy-mm-dd
-
-    let found = false;
-
-    rows.forEach(r => {
-      const sheetDate = r.c[0]?.f; // ✅ 用 formatted 日期字串
-      if (!sheetDate) return;
-
-      if (sheetDate === todayStr) {
-        found = true;
-
-        document.getElementById("menuDate").innerText =
-          today.toLocaleDateString("zh-HK", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-            weekday: "long"
-          });
-
-        document.getElementById("breakfast").innerText = r.c[1]?.v || "";
-        document.getElementById("lunch").innerText     = r.c[2]?.v || "";
-        document.getElementById("tea").innerText       = r.c[3]?.v || "";
-        document.getElementById("dinner").innerText    = r.c[4]?.v || "";
-        document.getElementById("soup").innerText      = r.c[5]?.v || "";
-      }
-    });
-
-    if (!found) {
-      document.getElementById("menuDate").innerText = "今日未有餐單資料";
-    }
-  })
-  .catch(err => {
-    document.getElementById("menuDate").innerText = "無法載入餐單";
-    console.error(err);
-  });
-</script>
-``
-
-</body>
-</html>
