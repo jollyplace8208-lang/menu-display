@@ -62,3 +62,102 @@ body {
 <body>
 
 <div id="pages">
+  <div style="font-size:32px;">載入餐單中…</div>
+</div>
+
+<div class="footer">以上餐單如有更改，恕不另行通知</div>
+
+<script>
+/* ===== Sheet 設定 ===== */
+const SHEET_ID = "1Qg-VjH32AckzP3LFbYQFnCwZqq6YN0Es2qXIDlRYyAY";
+const SHEET_NAME = "Display_Menu";
+const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${SHEET_NAME}`;
+
+/* ===== 時段計算 ===== */
+const now = new Date();
+const mins = now.getHours() * 60 + now.getMinutes();
+const inRange = (a,b) => mins >= a && mins <= b;
+
+const highlight = {
+  breakfast: inRange(8*60, 8*60+30),      // 08:00–08:30
+  lunch:     inRange(11*60, 12*60),        // 11:00–12:00
+  tea:       inRange(14*60+45, 15*60+15),  // 14:45–15:15
+  dinner:    inRange(17*60, 18*60)         // 17:00–18:00
+};
+
+fetch(URL)
+  .then(r => r.text())
+  .then(t => {
+    const json = JSON.parse(t.substring(47, t.length-2));
+    const rows = (json.table && json.table.rows) ? json.table.rows : [];
+
+    const pagesDiv = document.getElementById("pages");
+    pagesDiv.innerHTML = "";
+    let pageCount = 0;
+
+    for (let i=0;i<3;i++) {
+      const d = new Date();
+      d.setDate(d.getDate()+i);
+      const key = d.toLocaleDateString("sv-SE");
+
+      const row = rows.find(r => r.c && r.c[0] && r.c[0].f === key);
+      if (!row) continue;
+
+      pageCount++;
+
+      const page = document.createElement("div");
+      page.className = "page"+(pageCount===1?" active":"");
+
+      page.innerHTML = `
+        <div class="date">
+          ${d.toLocaleDateString("zh-HK",{year:"numeric",month:"long",day:"numeric",weekday:"long"})}
+        </div>
+
+        <div class="meal ${highlight.breakfast?"highlight":""}">
+          <div class="meal-title">🥣 早餐</div>
+          <div class="meal-content">${row.c[1]?.v||""}</div>
+        </div>
+
+        <div class="meal ${highlight.lunch?"highlight":""}">
+          <div class="meal-title">🍚 午餐</div>
+          <div class="meal-content">${row.c[2]?.v||""}</div>
+        </div>
+
+        <div class="meal ${highlight.tea?"highlight":""}">
+          <div class="meal-title">🍪 下午茶</div>
+          <div class="meal-content">${row.c[3]?.v||""}</div>
+        </div>
+
+        <div class="meal ${highlight.dinner?"highlight":""}">
+          <div class="meal-title">🍲 晚餐</div>
+          <div class="meal-content">${row.c[4]?.v||""}</div>
+        </div>
+
+        <div class="meal ${highlight.dinner?"highlight":""}">
+          <div class="meal-title">🍵 湯</div>
+          <div class="meal-content">${row.c[5]?.v||""}</div>
+        </div>
+      `;
+      pagesDiv.appendChild(page);
+    }
+
+    if (pageCount === 0) {
+      pagesDiv.innerHTML = "<div style='font-size:32px;'>未有餐單資料</div>";
+    } else if (pageCount > 1) {
+      const pages = document.querySelectorAll(".page");
+      let idx = 0;
+      setInterval(()=> {
+        pages[idx].classList.remove("active");
+        idx = (idx+1)%pages.length;
+        pages[idx].classList.add("active");
+      },10000);
+    }
+  })
+  .catch(e=>{
+    document.getElementById("pages").innerHTML =
+      "<div style='font-size:32px;color:red'>餐單載入失敗</div>";
+  });
+</script>
+
+</body>
+</html>
