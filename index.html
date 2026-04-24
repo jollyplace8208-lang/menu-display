@@ -5,71 +5,68 @@
 <title>每日餐單</title>
 
 <style>
-/* ===== 全局背景（木色） ===== */
+/* ===== 全局 ===== */
 body{
   margin:0;
-  background:#f4efe6; /* 淺木色 */
+  background:#f4efe6;
   font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif;
   color:#2b2b2b;
 }
-
-.page{display:none;padding:44px;}
+.page{display:none;padding:48px;}
 .page.active{display:block}
 
-/* ===== Header（院舍綠） ===== */
+/* ===== Header ===== */
 .header{
-  background:#6f8f73; /* 綠色 */
+  background:#6f8f73;
   color:#ffffff;
-  padding:22px 30px;
-  border-radius:16px;
-  margin-bottom:28px;
-  box-shadow:0 6px 16px rgba(0,0,0,.12);
+  padding:28px 36px;
+  border-radius:20px;
+  margin-bottom:36px;
 }
 .header h1{
   margin:0;
-  font-size:42px;
+  font-size:120px;   /* ✅ 大標題 */
   font-weight:700;
 }
 .header .date{
-  font-size:26px;
-  margin-top:6px;
-  opacity:.95;
+  font-size:100px;   /* ✅ 日期 */
+  margin-top:10px;
 }
 
-/* ===== 餐卡（白＋粉感） ===== */
+/* ===== 餐卡 ===== */
 .meal{
   background:#ffffff;
-  border-radius:16px;
-  padding:20px 24px;
-  margin-bottom:18px;
-  box-shadow:0 6px 14px rgba(214,180,160,.25); /* 粉感陰影 */
-  border-left:12px solid #f2d8c2; /* 淡粉邊 */
+  border-radius:20px;
+  padding:28px 32px;
+  margin-bottom:28px;
+  border-left:16px solid #f2d8c2;
 }
 
 .meal-title{
-  font-size:30px;
+  font-size:110px;   /* ✅ 早餐／午餐 標題 */
   font-weight:700;
-  margin-bottom:6px;
-}
-.meal-content{
-  font-size:28px;
-  line-height:1.6;
-  white-space:pre-line;
-  padding-left:6px;
+  margin-bottom:12px;
 }
 
-/* ===== Highlight（橙） ===== */
+.meal-content{
+  font-size:100px;   /* ✅ 你要求：100 */
+  line-height:1.4;
+  white-space:pre-line;
+  padding-left:8px;
+}
+
+/* ===== Highlight ===== */
 .highlight{
   background:#fff1dc;
-  border-left-color:#f4a259; /* 橙色 */
+  border-left-color:#f4a259;
 }
 
 /* ===== Footer ===== */
 .footer{
   position:fixed;
   right:24px;
-  bottom:14px;
-  font-size:18px;
+  bottom:16px;
+  font-size:36px;  /* 保持較細 */
   color:#666;
 }
 </style>
@@ -86,7 +83,7 @@ const SHEET_ID   = "1Qg-VjH32AckzP3LFbYQFnCwZqq6YN0Es2qXIDlRYyAY";
 const SHEET_NAME = "Display_Menu";
 const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${SHEET_NAME}`;
 
-/* ===== 時段 Highlight（照你指定） ===== */
+/* ===== 時段 Highlight ===== */
 const now=new Date();
 const mins=now.getHours()*60+now.getMinutes();
 const inR=(a,b)=>mins>=a&&mins<=b;
@@ -106,7 +103,7 @@ fetch(URL).then(r=>r.text()).then(t=>{
   const show=rows.slice(0,3);
 
   if(show.length===0){
-    wrap.innerHTML="<div style='font-size:32px'>未有餐單資料</div>";
+    wrap.innerHTML="<div style='font-size:100px'>未有餐單資料</div>";
     return;
   }
 
