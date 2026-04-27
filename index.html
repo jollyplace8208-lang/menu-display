@@ -5,171 +5,138 @@
 <title>每日餐單</title>
 
 <style>
-/* ===== 1230 x 2160 直向（再縮細版本） ===== */
-html, body {
-  width: 1230px;
-  height: 2160px;
-  margin: 0;
+html, body{
+  width:1230px;
+  height:2160px;
+  margin:0;
 }
-body {
-  background: #f4efe6;
-  font-family: "Microsoft JhengHei","Noto Sans TC",sans-serif;
-  color: #2b2b2b;
+body{
+  background:#f4efe6;
+  font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif;
+  color:#2b2b2b;
+  box-sizing:border-box;
+  padding:32px;
 }
-.page {
-  display: none;
-  padding: 36px;
-  box-sizing: border-box;
-}
-.page.active { display: block; }
 
 /* ===== Header ===== */
-.header {
-  background: #6f8f73;
-  color: #ffffff;
-  padding: 24px 28px;
-  border-radius: 20px;
-  margin-bottom: 26px;
+.header{
+  background:#6f8f73;
+  color:#fff;
+  padding:22px 26px;
+  border-radius:18px;
+  margin-bottom:24px;
 }
-.header h1 {
-  margin: 0;
-  font-size: 56px;        /* ✅ 再縮 */
-  font-weight: 700;
+.header h1{
+  margin:0;
+  font-size:52px;
 }
-.header .date {
-  font-size: 44px;        /* ✅ 再縮 */
-  margin-top: 6px;
-  opacity: 0.95;
+.header .date{
+  font-size:42px;
+  margin-top:6px;
 }
 
-/* ===== 餐卡 ===== */
-.meal {
-  background: #ffffff;
-  border-radius: 20px;
-  padding: 22px 26px;
-  margin-bottom: 22px;
-  border-left: 12px solid #f2d8c2;
+/* ===== Meal blocks ===== */
+.meal{
+  background:#fff;
+  border-radius:18px;
+  padding:18px 22px;
+  margin-bottom:18px;
+  border-left:10px solid #f2d8c2;
 }
 
-/* 餐別標題 */
-.meal-title {
-  font-size: 48px;        /* ✅ */
-  font-weight: 700;
-  margin-bottom: 8px;
+.meal-title{
+  font-size:46px;
+  font-weight:700;
+  margin-bottom:6px;
+}
+.meal-content{
+  font-size:36px;
+  line-height:1.5;
+  white-space:pre-line;
+  padding-left:4px;
 }
 
-/* 內容（菜名） */
-.meal-content {
-  font-size: 36px;        /* ✅ 關鍵：再細 */
-  line-height: 1.5;
-  white-space: pre-line;
-  padding-left: 4px;
+/* Highlight */
+.highlight{
+  background:#fff1dc;
+  border-left-color:#f4a259;
 }
 
-/* ===== Highlight ===== */
-.highlight {
-  background: #fff1dc;
-  border-left-color: #f4a259;
-}
-
-/* ===== Footer ===== */
-.footer {
-  position: absolute;
-  bottom: 14px;
-  right: 20px;
-  font-size: 22px;
-  color: #666;
+/* Footer */
+.footer{
+  position:absolute;
+  bottom:16px;
+  right:24px;
+  font-size:22px;
+  color:#666;
 }
 </style>
 </head>
 
 <body>
 
-<div id="pages">載入餐單中…</div>
+<div id="content">載入餐單中…</div>
 <div class="footer">以上餐單如有更改，恕不另行通知</div>
 
 <script>
-/* ===== Google Sheet ===== */
 const SHEET_ID   = "1Qg-VjH32AckzP3LFbYQFnCwZqq6YN0Es2qXIDlRYyAY";
 const SHEET_NAME = "Display_Menu";
 const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${SHEET_NAME}`;
 
-/* ===== 時段 Highlight（照你指定） ===== */
-const now = new Date();
-const mins = now.getHours() * 60 + now.getMinutes();
-const inR = (a,b) => mins >= a && mins <= b;
-
-const HL = {
+/* 時段 highlight */
+const now=new Date();
+const mins=now.getHours()*60+now.getMinutes();
+const inR=(a,b)=>mins>=a&&mins<=b;
+const HL={
   breakfast: inR(8*60,8*60+30),
-  lunch:     inR(11*60,12*60),
-  tea:       inR(14*60+45,15*60+15),
-  dinner:    inR(17*60,18*60)
+  lunch: inR(11*60,12*60),
+  tea: inR(14*60+45,15*60+15),
+  dinner: inR(17*60,18*60)
 };
 
 fetch(URL).then(r=>r.text()).then(t=>{
-  const json = JSON.parse(t.substring(47, t.length-2));
-  const rows = (json.table && json.table.rows) || [];
-  const wrap = document.getElementById("pages");
-  wrap.innerHTML = "";
-
-  const show = rows.slice(0,3);
-  if (show.length === 0) {
-    wrap.innerHTML = "<div style='font-size:36px'>未有餐單資料</div>";
+  const json=JSON.parse(t.substring(47,t.length-2));
+  const rows=(json.table&&json.table.rows)||[];
+  const r=rows[0]; // ✅ 只顯示今日
+  if(!r){
+    document.getElementById("content").innerHTML="未有餐單資料";
     return;
   }
 
-  show.forEach((r,i)=>{
-    const d = new Date();
-    d.setDate(d.getDate()+i);
-
-    const page = document.createElement("div");
-    page.className = "page" + (i===0 ? " active" : "");
-
-    page.innerHTML = `
-      <div class="header">
-        <h1>🍽 每日餐單</h1>
-        <div class="date">
-          ${d.toLocaleDateString("zh-HK",{year:"numeric",month:"long",day:"numeric",weekday:"long"})}
-        </div>
+  const d=new Date();
+  document.getElementById("content").innerHTML=`
+    <div class="header">
+      <h1>🍽 每日餐單</h1>
+      <div class="date">
+        ${d.toLocaleDateString("zh-HK",{year:"numeric",month:"long",day:"numeric",weekday:"long"})}
       </div>
+    </div>
 
-      <div class="meal ${HL.breakfast?"highlight":""}">
-        <div class="meal-title">🥣 早餐</div>
-        <div class="meal-content">${r.c[1]?.v||""}</div>
-      </div>
+    <div class="meal ${HL.breakfast?"highlight":""}">
+      <div class="meal-title">🥣 早餐</div>
+      <div class="meal-content">${r.c[1]?.v||""}</div>
+    </div>
 
-      <div class="meal ${HL.lunch?"highlight":""}">
-        <div class="meal-title">🍚 午餐</div>
-        <div class="meal-content">${r.c[2]?.v||""}</div>
-      </div>
+    <div class="meal ${HL.lunch?"highlight":""}">
+      <div class="meal-title">🍚 午餐</div>
+      <div class="meal-content">${r.c[2]?.v||""}</div>
+    </div>
 
-      <div class="meal ${HL.tea?"highlight":""}">
-        <div class="meal-title">🍪 下午茶</div>
-        <div class="meal-content">${r.c[3]?.v||""}</div>
-      </div>
+    <div class="meal ${HL.tea?"highlight":""}">
+      <div class="meal-title">🍪 下午茶</div>
+      <div class="meal-content">${r.c[3]?.v||""}</div>
+    </div>
 
-      <div class="meal ${HL.dinner?"highlight":""}">
-        <div class="meal-title">🍲 晚餐</div>
-        <div class="meal-content">${r.c[4]?.v||""}</div>
-      </div>
+    <div class="meal ${HL.dinner?"highlight":""}">
+      <div class="meal-title">🍲 晚餐</div>
+      <div class="meal-content">${r.c[4]?.v||""}</div>
+    </div>
 
-      <div class="meal ${HL.dinner?"highlight":""}">
-        <div class="meal-title">🍵 湯</div>
-        <div class="meal-content">${r.c[5]?.v||""}</div>
-      </div>
-    `;
-    wrap.appendChild(page);
-  });
-
-  if (show.length > 1) {
-    const pages = document.querySelectorAll(".page");
-    let idx = 0;
-    setInterval(()=>{
-      pages[idx].classList.remove("active");
-      idx = (idx+1) % pages.length;
-      pages[idx].classList.add("active");
-    }, 10000);
-  }
+    <div class="meal ${HL.dinner?"highlight":""}">
+      <div class="meal-title">🍵 湯</div>
+      <div class="meal-content">${r.c[5]?.v||""}</div>
+    </div>
+  `;
 });
 </script>
 
