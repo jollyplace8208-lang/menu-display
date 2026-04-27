@@ -5,70 +5,67 @@
 <title>每日餐單</title>
 
 <style>
-/* ===== 1230 x 2160 直向專用 ===== */
+/* ===== 1230 x 2160 直向專用（已調細） ===== */
 html,body{
   width:1230px;
   height:2160px;
   margin:0;
 }
-
 body{
   background:#f4efe6;
   font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif;
   color:#2b2b2b;
 }
-
 .page{
   display:none;
-  padding:48px;
+  padding:40px;
   box-sizing:border-box;
 }
 .page.active{display:block}
 
-/* ===== Header（綠色）===== */
+/* ===== Header ===== */
 .header{
   background:#6f8f73;
   color:#ffffff;
-  padding:40px 40px;
-  border-radius:28px;
-  margin-bottom:48px;
+  padding:28px 32px;
+  border-radius:24px;
+  margin-bottom:32px;
 }
 .header h1{
   margin:0;
-  font-size:120px;
+  font-size:72px;   /* ✅ 調細 */
   font-weight:700;
 }
 .header .date{
-  font-size:100px;
-  margin-top:16px;
-  opacity:.95;
+  font-size:56px;   /* ✅ 調細 */
+  margin-top:8px;
 }
 
 /* ===== 餐卡 ===== */
 .meal{
   background:#ffffff;
-  border-radius:28px;
-  padding:36px 40px;
-  margin-bottom:36px;
-  border-left:18px solid #f2d8c2;
+  border-radius:24px;
+  padding:26px 28px;
+  margin-bottom:26px;
+  border-left:14px solid #f2d8c2;
 }
 
-/* 餐名 */
+/* 餐別 */
 .meal-title{
-  font-size:110px;
+  font-size:60px;   /* ✅ */
   font-weight:700;
-  margin-bottom:16px;
+  margin-bottom:10px;
 }
 
-/* 菜單內容 */
+/* 內容 */
 .meal-content{
-  font-size:100px;
+  font-size:48px;   /* ✅ 最舒服 */
   line-height:1.45;
   white-space:pre-line;
-  padding-left:10px;
+  padding-left:6px;
 }
 
-/* ===== Highlight（橙）===== */
+/* ===== Highlight ===== */
 .highlight{
   background:#fff1dc;
   border-left-color:#f4a259;
@@ -77,9 +74,9 @@ body{
 /* ===== Footer ===== */
 .footer{
   position:absolute;
-  bottom:28px;
-  right:36px;
-  font-size:48px;
+  bottom:18px;
+  right:28px;
+  font-size:26px;
   color:#666;
 }
 </style>
@@ -96,11 +93,10 @@ const SHEET_ID   = "1Qg-VjH32AckzP3LFbYQFnCwZqq6YN0Es2qXIDlRYyAY";
 const SHEET_NAME = "Display_Menu";
 const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${SHEET_NAME}`;
 
-/* ===== 時段 Highlight（照你指定）===== */
+/* ===== 時段 Highlight（跟你指定） ===== */
 const now=new Date();
 const mins=now.getHours()*60+now.getMinutes();
 const inR=(a,b)=>mins>=a&&mins<=b;
-
 const HL={
   breakfast: inR(8*60,8*60+30),
   lunch:     inR(11*60,12*60),
@@ -116,7 +112,7 @@ fetch(URL).then(r=>r.text()).then(t=>{
   const show=rows.slice(0,3);
 
   if(show.length===0){
-    wrap.innerHTML="<div style='font-size:100px'>未有餐單資料</div>";
+    wrap.innerHTML="<div style='font-size:48px'>未有餐單資料</div>";
     return;
   }
 
