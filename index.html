@@ -18,6 +18,14 @@ body{
   padding:32px;
 }
 
+/* ===== Page（單日一頁） ===== */
+.page{
+  display:none;
+}
+.page.active{
+  display:block;
+}
+
 /* ===== Header ===== */
 .header{
   background:#6f8f73;
@@ -75,7 +83,7 @@ body{
 
 <body>
 
-<div id="content">載入餐單中…</div>
+<div id="pages">載入餐單中…</div>
 <div class="footer">以上餐單如有更改，恕不另行通知</div>
 
 <script>
@@ -83,7 +91,7 @@ const SHEET_ID   = "1Qg-VjH32AckzP3LFbYQFnCwZqq6YN0Es2qXIDlRYyAY";
 const SHEET_NAME = "Display_Menu";
 const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${SHEET_NAME}`;
 
-/* 時段 highlight */
+/* ===== 時段 highlight ===== */
 const now=new Date();
 const mins=now.getHours()*60+now.getMinutes();
 const inR=(a,b)=>mins>=a&&mins<=b;
@@ -97,46 +105,68 @@ const HL={
 fetch(URL).then(r=>r.text()).then(t=>{
   const json=JSON.parse(t.substring(47,t.length-2));
   const rows=(json.table&&json.table.rows)||[];
-  const r=rows[0]; // ✅ 只顯示今日
-  if(!r){
-    document.getElementById("content").innerHTML="未有餐單資料";
+  const pagesDiv=document.getElementById("pages");
+  pagesDiv.innerHTML="";
+
+  const showRows = rows.slice(0,3); // ✅ 今日／明日／後日
+  if(showRows.length===0){
+    pagesDiv.innerHTML="未有餐單資料";
     return;
   }
 
-  const d=new Date();
-  document.getElementById("content").innerHTML=`
-    <div class="header">
-      <h1>🍽 每日餐單</h1>
-      <div class="date">
-        ${d.toLocaleDateString("zh-HK",{year:"numeric",month:"long",day:"numeric",weekday:"long"})}
+  showRows.forEach((r,i)=>{
+    const d=new Date();
+    d.setDate(d.getDate()+i);
+
+    const page=document.createElement("div");
+    page.className="page"+(i===0?" active":"");
+
+    page.innerHTML=`
+      <div class="header">
+        <h1>🍽 每日餐單</h1>
+        <div class="date">
+          ${d.toLocaleDateString("zh-HK",{year:"numeric",month:"long",day:"numeric",weekday:"long"})}
+        </div>
       </div>
-    </div>
 
-    <div class="meal ${HL.breakfast?"highlight":""}">
-      <div class="meal-title">🥣 早餐</div>
-      <div class="meal-content">${r.c[1]?.v||""}</div>
-    </div>
+      <div class="meal ${HL.breakfast?"highlight":""}">
+        <div class="meal-title">🥣 早餐</div>
+        <div class="meal-content">${r.c[1]?.v||""}</div>
+      </div>
 
-    <div class="meal ${HL.lunch?"highlight":""}">
-      <div class="meal-title">🍚 午餐</div>
-      <div class="meal-content">${r.c[2]?.v||""}</div>
-    </div>
+      <div class="meal ${HL.lunch?"highlight":""}">
+        <div class="meal-title">🍚 午餐</div>
+        <div class="meal-content">${r.c[2]?.v||""}</div>
+      </div>
 
-    <div class="meal ${HL.tea?"highlight":""}">
-      <div class="meal-title">🍪 下午茶</div>
-      <div class="meal-content">${r.c[3]?.v||""}</div>
-    </div>
+      <div class="meal ${HL.tea?"highlight":""}">
+        <div class="meal-title">🍪 下午茶</div>
+        <div class="meal-content">${r.c[3]?.v||""}</div>
+      </div>
 
-    <div class="meal ${HL.dinner?"highlight":""}">
-      <div class="meal-title">🍲 晚餐</div>
-      <div class="meal-content">${r.c[4]?.v||""}</div>
-    </div>
+      <div class="meal ${HL.dinner?"highlight":""}">
+        <div class="meal-title">🍲 晚餐</div>
+        <div class="meal-content">${r.c[4]?.v||""}</div>
+      </div>
 
-    <div class="meal ${HL.dinner?"highlight":""}">
-      <div class="meal-title">🍵 湯</div>
-      <div class="meal-content">${r.c[5]?.v||""}</div>
-    </div>
-  `;
+      <div class="meal ${HL.dinner?"highlight":""}">
+        <div class="meal-title">🍵 湯</div>
+        <div class="meal-content">${r.c[5]?.v||""}</div>
+      </div>
+    `;
+    pagesDiv.appendChild(page);
+  });
+
+  /* ===== 三天輪播 ===== */
+  if(showRows.length>1){
+    const pages=document.querySelectorAll(".page");
+    let idx=0;
+    setInterval(()=>{
+      pages[idx].classList.remove("active");
+      idx=(idx+1)%pages.length;
+      pages[idx].classList.add("active");
+    },10000);
+  }
 });
 </script>
 
