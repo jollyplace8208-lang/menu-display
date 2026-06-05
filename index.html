@@ -2,172 +2,167 @@
 <html lang="zh-HK">
 <head>
 <meta charset="UTF-8">
-<title>每日餐單</title>
+
+<!-- ✅ 農曆庫 -->
+<script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.min.js"></script>
 
 <style>
-html, body{
-  width:1230px;
-  height:2160px;
-  margin:0;
-}
-body{
-  background:#f4efe6;
-  font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif;
-  color:#2b2b2b;
-  box-sizing:border-box;
-  padding:32px;
+body {
+  width: 3840px;
+  height: 2160px;
+  margin: 0;
+  font-family: "Microsoft JhengHei";
+  background: #E8EDDE;
 }
 
-/* ===== Page（單日一頁） ===== */
-.page{
-  display:none;
-}
-.page.active{
-  display:block;
-}
-
-/* ===== Header ===== */
-.header{
-  background:#6f8f73;
-  color:#fff;
-  padding:22px 26px;
-  border-radius:18px;
-  margin-bottom:24px;
-}
-.header h1{
-  margin:0;
-  font-size:52px;
-}
-.header .date{
-  font-size:42px;
-  margin-top:6px;
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  padding: 80px 120px;
+  color: #7A8B42;
 }
 
-/* ===== Meal blocks ===== */
-.meal{
-  background:#fff;
-  border-radius:18px;
-  padding:18px 22px;
-  margin-bottom:18px;
-  border-left:10px solid #f2d8c2;
+.date {
+  font-size: 150px;
+  font-weight: bold;
 }
 
-.meal-title{
-  font-size:46px;
-  font-weight:700;
-  margin-bottom:6px;
-}
-.meal-content{
-  font-size:36px;
-  line-height:1.5;
-  white-space:pre-line;
-  padding-left:4px;
+.subtitle {
+  font-size: 90px;
 }
 
-/* Highlight */
-.highlight{
-  background:#fff1dc;
-  border-left-color:#f4a259;
+/* Holiday */
+.holiday-title { font-size: 80px; }
+.holiday-name { font-size: 120px; font-weight: bold; }
+.zongzi { width: 200px; }
+
+/* Grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 50px;
+  padding: 40px 120px;
 }
 
-/* Footer */
-.footer{
-  position:absolute;
-  bottom:16px;
-  right:24px;
-  font-size:22px;
-  color:#666;
+/* Cards */
+.card {
+  border-radius: 40px;
+  padding: 70px;
+  height: 1200px;
 }
+
+.white { background:#F2F2F2; color:#A48036; }
+.green { background:#7A8B42; color:white; }
+
+/* Text */
+.title { font-size: 180px; }
+.item { font-size: 100px; margin: 30px 0; }
+
+/* Split */
+.split { display:flex; flex-direction:column; }
+.top { background:#F2F2F2; color:#A48036; border-radius:40px; padding:60px; margin-bottom:30px;}
+.bottom { background:#7A8B42; color:white; border-radius:40px; padding:60px; flex:1; }
+
 </style>
 </head>
 
 <body>
 
-<div id="pages">載入餐單中…</div>
-<div class="footer">以上餐單如有更改，恕不另行通知</div>
+<div class="header">
+  <div>
+    <div id="date" class="date"></div>
+    <div class="subtitle">是日餐譜</div>
+  </div>
+
+  <div>
+    <div class="holiday-title">下一個節日：</div>
+    <div id="holiday" class="holiday-name"></div>
+    <img class="zongzi" src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png">
+  </div>
+</div>
+
+<div class="grid">
+
+  <div class="card white">
+    <div class="title">早餐</div>
+    <div id="breakfast"></div>
+  </div>
+
+  <div class="card green">
+    <div class="title">午餐</div>
+    <div id="lunch"></div>
+  </div>
+
+  <div class="split">
+    <div class="top">
+      <div class="title">下午茶</div>
+      <div id="tea"></div>
+    </div>
+    <div class="bottom">
+      <div class="title">湯</div>
+      <div id="soup"></div>
+    </div>
+  </div>
+
+  <div class="card green">
+    <div class="title">晚餐</div>
+    <div id="dinner"></div>
+  </div>
+
+</div>
 
 <script>
-const SHEET_ID   = "1Qg-VjH32AckzP3LFbYQFnCwZqq6YN0Es2qXIDlRYyAY";
-const SHEET_NAME = "Display_Menu";
-const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${SHEET_NAME}`;
 
-/* ===== 時段 highlight ===== */
-const now=new Date();
-const mins=now.getHours()*60+now.getMinutes();
-const inR=(a,b)=>mins>=a&&mins<=b;
-const HL={
-  breakfast: inR(8*60,8*60+30),
-  lunch: inR(11*60,12*60),
-  tea: inR(14*60+45,15*60+15),
-  dinner: inR(17*60,18*60)
-};
+/* ✅ 日期 */
+const today = new Date();
+const days = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
+document.getElementById("date").innerText =
+  `${today.getFullYear()}.${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')} ${days[today.getDay()]}`;
 
-fetch(URL).then(r=>r.text()).then(t=>{
-  const json=JSON.parse(t.substring(47,t.length-2));
-  const rows=(json.table&&json.table.rows)||[];
-  const pagesDiv=document.getElementById("pages");
-  pagesDiv.innerHTML="";
+/* ✅ 農曆節日（準確） */
+const solar = Solar.fromDate(today);
+const lunar = solar.getLunar();
+const festivals = solar.getFestivals(); // 公曆
+const lunarFestivals = lunar.getFestivals(); // 農曆
 
-  const showRows = rows.slice(0,3); // ✅ 今日／明日／後日
-  if(showRows.length===0){
-    pagesDiv.innerHTML="未有餐單資料";
-    return;
+let holiday = "";
+
+if (lunarFestivals.length > 0) {
+  holiday = lunarFestivals[0];
+} else if (festivals.length > 0) {
+  holiday = festivals[0];
+} else {
+  holiday = "—";
+}
+
+document.getElementById("holiday").innerText = holiday;
+
+/* ✅ 讀 Google Sheets */
+fetch("https://docs.google.com/spreadsheets/d/1-sqkIZbALnSUV8LpjTBLDey8_rIDJ8KU/gviz/tq?tqx=out:json&gid=1949007468")
+.then(res => res.text())
+.then(text => {
+
+  const json = JSON.parse(text.substring(47).slice(0,-2));
+  const rows = json.table.rows;
+
+  function get(colIndex) {
+    return rows.map(r => r.c[colIndex]?.v || "").filter(v => v);
   }
 
-  showRows.forEach((r,i)=>{
-    const d=new Date();
-    d.setDate(d.getDate()+i);
-
-    const page=document.createElement("div");
-    page.className="page"+(i===0?" active":"");
-
-    page.innerHTML=`
-      <div class="header">
-        <h1>🍽 每日餐單</h1>
-        <div class="date">
-          ${d.toLocaleDateString("zh-HK",{year:"numeric",month:"long",day:"numeric",weekday:"long"})}
-        </div>
-      </div>
-
-      <div class="meal ${HL.breakfast?"highlight":""}">
-        <div class="meal-title">🥣 早餐</div>
-        <div class="meal-content">${r.c[1]?.v||""}</div>
-      </div>
-
-      <div class="meal ${HL.lunch?"highlight":""}">
-        <div class="meal-title">🍚 午餐</div>
-        <div class="meal-content">${r.c[2]?.v||""}</div>
-      </div>
-
-      <div class="meal ${HL.tea?"highlight":""}">
-        <div class="meal-title">🍪 下午茶</div>
-        <div class="meal-content">${r.c[3]?.v||""}</div>
-      </div>
-
-      <div class="meal ${HL.dinner?"highlight":""}">
-        <div class="meal-title">🍲 晚餐</div>
-        <div class="meal-content">${r.c[4]?.v||""}</div>
-      </div>
-
-      <div class="meal ${HL.dinner?"highlight":""}">
-        <div class="meal-title">🍵 湯</div>
-        <div class="meal-content">${r.c[5]?.v||""}</div>
-      </div>
-    `;
-    pagesDiv.appendChild(page);
-  });
-
-  /* ===== 三天輪播 ===== */
-  if(showRows.length>1){
-    const pages=document.querySelectorAll(".page");
-    let idx=0;
-    setInterval(()=>{
-      pages[idx].classList.remove("active");
-      idx=(idx+1)%pages.length;
-      pages[idx].classList.add("active");
-    },10000);
-  }
+  render("breakfast", get(0));
+  render("lunch", get(1));
+  render("tea", get(2));
+  render("soup", get(3));
+  render("dinner", get(4));
 });
+
+/* render */
+function render(id, arr) {
+  document.getElementById(id).innerHTML =
+    arr.map(i => `<div class="item">${i}</div>`).join('');
+}
+
 </script>
 
 </body>
